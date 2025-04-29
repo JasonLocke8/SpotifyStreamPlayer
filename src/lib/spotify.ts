@@ -5,8 +5,31 @@ const RESPONSE_TYPE = "token";
 const SCOPE = "user-read-currently-playing user-read-playback-state";
 
 export const loginUrl = `${AUTH_ENDPOINT}?client_id=${SPOTIFY_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`;
-export const getSpotifyToken = (token: string) => {
-  localStorage.setItem('spotify_token', token);
+
+export const saveSpotifyToken = (token: string) => {
+  sessionStorage.setItem('spotify_token', token);
+};
+
+export const getSpotifyToken = (): string | null => {
+  return sessionStorage.getItem('spotify_token');
+};
+
+export const extractTokenFromUrl = (): string | null => {
+  const hash = window.location.hash;
+  if (!hash) return null;
+
+  const token = hash
+    .substring(1)
+    .split("&")
+    .find((param) => param.startsWith("access_token"))
+    ?.split("=")[1];
+
+  if (token) {
+    saveSpotifyToken(token);
+    window.location.hash = "";
+  }
+
+  return token || null;
 };
 
 export const getCurrentTrack = async (token: string) => {

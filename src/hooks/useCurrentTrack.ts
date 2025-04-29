@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { getCurrentTrack, getPlaybackState } from '../lib/spotify';
+import { getSpotifyToken } from '../lib/spotify';
 import type { SpotifyTrack } from '../types/spotify';
 
-export function useCurrentTrack(token: string) {
+export function useCurrentTrack() {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
   const [playbackState, setPlaybackState] = useState<{ progress_ms: number; isPlaying: boolean } | null>(null);
 
   useEffect(() => {
+    const token = getSpotifyToken();
     if (!token) return;
 
     const fetchTrack = async () => {
@@ -24,9 +26,9 @@ export function useCurrentTrack(token: string) {
     const interval = setInterval(() => {
       fetchTrack();
       fetchPlaybackState();
-    }, 1000); 
+    }, 1000);
     return () => clearInterval(interval);
-  }, [token]);
+  }, []);
 
   return { track, playbackState };
 }

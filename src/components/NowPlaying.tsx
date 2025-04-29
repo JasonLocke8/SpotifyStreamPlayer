@@ -2,15 +2,14 @@ import React from "react";
 import { WindowControls } from "./WindowControls";
 import { AlbumArt } from "./AlbumArt";
 import { PlayerInfo } from "./PlayerInfo";
-import { useSpotifyAuth } from "../hooks/useSpotifyAuth";
 import { useCurrentTrack } from "../hooks/useCurrentTrack";
-import { loginUrl } from "../lib/spotify";
+import { loginUrl, getSpotifyToken } from "../lib/spotify";
 import { mockTrack } from "../data/mockData";
 
 const NowPlaying = () => {
-  const { token } = useSpotifyAuth();
-  const { track } = useCurrentTrack(token);
-  const { playbackState } = useCurrentTrack(token);
+  const token = getSpotifyToken();
+  const { track } = useCurrentTrack();
+  const { playbackState } = useCurrentTrack();
   const currentTrack = track || mockTrack;
 
   if (!token) {
