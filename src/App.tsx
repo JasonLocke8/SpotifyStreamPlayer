@@ -1,11 +1,17 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import NowPlaying from './components/NowPlaying';
-import { extractTokenFromUrl } from './lib/spotify';
+import { useSpotifyAuth } from './hooks/useSpotifyAuth';
 
 function App() {
-  useEffect(() => {
-    extractTokenFromUrl();
-  }, []);
+  const { token, loading } = useSpotifyAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-white">Cargando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center">

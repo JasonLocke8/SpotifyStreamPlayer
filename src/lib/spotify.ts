@@ -1,7 +1,7 @@
 const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI;
 const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
-const RESPONSE_TYPE = "token";
+const RESPONSE_TYPE = "code";
 const SCOPE = "user-read-currently-playing user-read-playback-state";
 
 export const loginUrl = `${AUTH_ENDPOINT}?client_id=${SPOTIFY_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`;
@@ -14,22 +14,37 @@ export const getSpotifyToken = (): string | null => {
   return sessionStorage.getItem('spotify_token');
 };
 
-export const extractTokenFromUrl = (): string | null => {
-  const hash = window.location.hash;
-  if (!hash) return null;
+export const extractTokenFromUrl = async (): Promise<string | null> => {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  
+  if (!code) return null;
 
-  const token = hash
-    .substring(1)
-    .split("&")
-    .find((param) => param.startsWith("access_token"))
-    ?.split("=")[1];
+  try {
+    const response = await fetch('/.netlify/functions/spotify-authorize', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code }),
+    });
 
-  if (token) {
-    saveSpotifyToken(token);
-    window.location.hash = "";
+    if (!response.ok) {
+      console.error('Token exchange failed', response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    saveSpotifyToken(data.access_token);
+    
+    // Limpiar la URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+    
+    return data.access_token;
+  } catch (error) {
+    console.error('Error exchanging code for token:', error);
+    return null;
   }
-
-  return token || null;
 };
 
 export const getCurrentTrack = async (token: string) => {

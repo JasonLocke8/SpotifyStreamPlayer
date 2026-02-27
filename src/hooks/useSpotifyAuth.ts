@@ -3,13 +3,23 @@ import { extractTokenFromUrl, getSpotifyToken } from '../lib/spotify';
 
 export function useSpotifyAuth() {
   const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    extractTokenFromUrl();
+    const initAuth = async () => {
+      const extractedToken = await extractTokenFromUrl();
+      
+      if (extractedToken) {
+        setToken(extractedToken);
+      } else {
+        const storedToken = getSpotifyToken();
+        setToken(storedToken);
+      }
+      setLoading(false);
+    };
 
-    const storedToken = getSpotifyToken();
-    setToken(storedToken);
+    initAuth();
   }, []);
 
-  return { token };
+  return { token, loading };
 }
